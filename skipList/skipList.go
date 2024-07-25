@@ -3,85 +3,95 @@ package main
 import "math/rand"
 
 const maxLevel = 32
+const pFactor = 0.25
 
-type Node struct {
-	val  int
-	next []*Node
+type SkiplistNode struct {
+	val     int
+	forward []*SkiplistNode
 }
 
 type Skiplist struct {
-	head  *Node
+	head  *SkiplistNode
 	level int
 }
 
 func Constructor() Skiplist {
-	return Skiplist{
-		head: &Node{
-			val:  -1,
-			next: make([]*Node, maxLevel),
-		},
-		level: 0,
-	}
+	return Skiplist{&SkiplistNode{-1, make([]*SkiplistNode, maxLevel)}, 0}
 }
 
-func getRandomLevel() int {
-	if rand.Intn(2) == 0 {
-		return 0
+func (Skiplist) randomLevel() int {
+	lv := 1
+	for lv < maxLevel && rand.Float64() < pFactor {
+		lv++
 	}
-	return 1
+	return lv
 }
 
-func (this *Skiplist) Search(target int) bool {
-	cur := this.head
-	for i := this.level - 1; i >= 0; i-- {
-		for cur.next[i] != nil && cur.next[i].val < target {
-			cur = cur.next[i]
+func (s *Skiplist) Search(target int) bool {
+	curr := s.head
+	for i := s.level - 1; i >= 0; i-- {
+		// 找到第 i 层小于且最接近 target 的元素
+		for curr.forward[i] != nil && curr.forward[i].val < target {
+			curr = curr.forward[i]
 		}
 	}
-	return cur != nil && cur.val == target
+	curr = curr.forward[0]
+	// 检测当前元素的值是否等于 target
+	return curr != nil && curr.val == target
 }
 
-func (this *Skiplist) Add(num int) {
-	updated := make([]*Node, maxLevel)
-	for i := range updated {
-		updated[i] = this.head
+func (s *Skiplist) Add(num int) {
+	update := make([]*SkiplistNode, maxLevel)
+	for i := range update {
+		update[i] = s.head
 	}
-	cur := this.head
-	for i := this.level - 1; i >= 0; i-- {
-		for cur.next[i] != nil && cur.next[i].val < num {
-			cur = cur.next[i]
+	curr := s.head
+	for i := s.level - 1; i >= 0; i-- {
+		// 找到第 i 层小于且最接近 num 的元素
+		for curr.forward[i] != nil && curr.forward[i].val < num {
+			curr = curr.forward[i]
 		}
-		updated[i] = cur
+		update[i] = curr
 	}
-	this.level = max(this.level, this.level+getRandomLevel())
-	newNode := &Node{
-		val:  num,
-		next: make([]*Node, this.level),
-	}
-	for i, node := range updated[0:this.level] {
-		newNode.next[i] = node.next[i]
-		node.next[i] = newNode
+	lv := s.randomLevel()
+	s.level = max(s.level, lv)
+	newNode := &SkiplistNode{num, make([]*SkiplistNode, lv)}
+	for i, node := range update[:lv] {
+		// 对第 i 层的状态进行更新，将当前元素的 forward 指向新的节点
+		newNode.forward[i] = node.forward[i]
+		node.forward[i] = newNode
 	}
 }
 
-func (this *Skiplist) Erase(num int) bool {
-	updated := make([]*Node, maxLevel)
-	cur := this.head
-	for i := this.level - 1; i >= 0; i-- {
-		for cur.next != nil && cur.next[i].val < num {
-			cur = cur.next[i]
+func (s *Skiplist) Erase(num int) bool {
+	update := make([]*SkiplistNode, maxLevel)
+	curr := s.head
+	for i := s.level - 1; i >= 0; i-- {
+		// 找到第 i 层小于且最接近 num 的元素
+		for curr.forward[i] != nil && curr.forward[i].val < num {
+			curr = curr.forward[i]
 		}
-		updated[i] = cur
+		update[i] = curr
 	}
-	cur = cur.next[0]
-	if cur == nil || cur.val != num {
+	curr = curr.forward[0]
+	// 如果值不存在则返回 false
+	if curr == nil || curr.val != num {
 		return false
 	}
-	for i := 0; i < this.level && updated[i] != nil; i++ {
-		updated[i].next[i] = cur.next[i]
+	for i := 0; i < s.level && update[i].forward[i] == curr; i++ {
+		// 对第 i 层的状态进行更新，将 forward 指向被删除节点的下一跳
+		update[i].forward[i] = curr.forward[i]
 	}
-	for this.level > 1 && this.head.next[this.level-1] == nil {
-		this.level--
+	// 更新当前的 level
+	for s.level > 1 && s.head.forward[s.level-1] == nil {
+		s.level--
 	}
 	return true
+}
+
+func max(a, b int) int {
+	if b > a {
+		return b
+	}
+	return a
 }
