@@ -1,6 +1,9 @@
 package main
 
-import "time"
+import (
+	"fmt"
+	"time"
+)
 
 func keepAlive() {
 	ticker := time.NewTicker(15 * time.Second)
@@ -18,4 +21,16 @@ func keepAlive() {
 			}
 		}
 	}()
+}
+
+func main() {
+	cnt := 1000
+	var sum time.Duration
+	for i := 0; i < 2; i++ {
+		now := time.Now()
+		time.Sleep(time.Second)
+		sum += time.Since(now)
+	}
+	fmt.Printf("sum: %f\n", sum.Seconds())
+	fmt.Printf("qps: %d", cnt/int(sum.Seconds()))
 }
