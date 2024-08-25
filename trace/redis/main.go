@@ -86,12 +86,14 @@ func main() {
 		panic(err)
 	}
 
-	ctx, span := tracer.Start(ctx, "doSomething")
-	defer span.End()
+	for range 10 {
+		ctx, span := tracer.Start(ctx, "doSomething")
+		defer span.End()
 
-	if err := doSomething(ctx, rdb); err != nil {
-		span.RecordError(err) // 记录error
-		span.SetStatus(codes.Error, err.Error())
+		if err = doSomething(ctx, rdb); err != nil {
+			span.RecordError(err)
+			span.SetStatus(codes.Error, err.Error())
+		}
 	}
 }
 
