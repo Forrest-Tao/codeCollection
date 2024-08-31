@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"sync"
+	"time"
 )
 
 // withAsyncCancel 装饰器函数，用来封装 goroutine 逻辑并处理错误和取消操作
@@ -71,5 +72,21 @@ func run() {
 		ch <- fmt.Sprintf("--%d--\n", i)
 	}
 	cancel()
+	wg.Wait()
+}
+
+func runShare() {
+	var wg sync.WaitGroup
+	wg.Add(3)
+
+	parent, cancel1 := context.WithCancel(context.Background())
+	child, _ := context.WithCancel(parent)
+	do1(parent, &wg)
+	do2(parent, &wg)
+	do3(child, &wg)
+
+	time.Sleep(time.Second * 3)
+	fmt.Println("after 3 s,cancel func")
+	cancel1()
 	wg.Wait()
 }
