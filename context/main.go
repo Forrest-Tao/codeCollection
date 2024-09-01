@@ -90,3 +90,32 @@ func runShare() {
 	cancel1()
 	wg.Wait()
 }
+
+// 定义几个自定义的键类型，防止不同的包之间键值对冲突
+type contextKey string
+
+const (
+	userIDKey   contextKey = "userID"
+	userNameKey contextKey = "userName"
+	emailKey    contextKey = "email"
+)
+
+func demo() {
+	// 创建一个背景 context
+	ctx := context.Background()
+
+	// 使用 WithValue 创建一个包含多个键值对的新 context
+	ctx = context.WithValue(ctx, userIDKey, 12345)
+	ctx = context.WithValue(ctx, userNameKey, "JohnDoe")
+	ctx = context.WithValue(ctx, emailKey, "johndoe@example.com")
+
+	// 从 context 中提取值
+	userID := ctx.Value(userIDKey)
+	userName := ctx.Value(userNameKey)
+
+	email := ctx.Value(emailKey)
+
+	fmt.Printf("UserID: %v\n", userID)
+	fmt.Printf("UserName: %v\n", userName)
+	fmt.Printf("Email: %v\n", email)
+}

@@ -128,3 +128,7 @@ package main
 //	wgReceivers.Wait()
 //	log.Println("stopped by", stoppedBy)
 //}
+
+//func main() {
+//	multi_choice()
+//}
