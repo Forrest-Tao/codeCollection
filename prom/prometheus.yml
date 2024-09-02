@@ -1,0 +1,7 @@
+global:
+  scrape_interval: 5s  # 默认抓取间隔时间
+
+scrape_configs:
+  - job_name: 'gin_web_app'
+    static_configs:
+      - targets: ['localhost:8080']  # 你的应用暴露 /metrics 路径在这个地址
