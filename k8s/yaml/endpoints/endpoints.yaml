@@ -1,0 +1,37 @@
+# 定义一个 Deployment，有3个副本（replica）
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: my-deployment
+  labels:
+    app: my-app
+spec:
+  replicas: 3  # 指定3个Pod副本
+  selector:
+    matchLabels:
+      app: my-app
+  template:
+    metadata:
+      labels:
+        app: my-app
+    spec:
+      containers:
+        - name: my-container
+          image: nginx:1.19  # 使用nginx镜像
+          ports:
+            - containerPort: 80
+
+---
+# 定义一个 Service 来暴露上面创建的 Deployment
+apiVersion: v1
+kind: Service
+metadata:
+  name: my-service
+spec:
+  selector:
+    app: my-app  # 根据 Deployment 中的标签选择Pod
+  ports:
+    - protocol: TCP
+      port: 80  # Service的端口
+      targetPort: 80  # Pod的端口
+  type: ClusterIP  # 使用集群内部IP进行服务发现（默认类型）

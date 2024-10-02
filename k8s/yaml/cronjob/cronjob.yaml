@@ -1,0 +1,28 @@
+##CronJob 中使用的 schedule 字段是一个 cron 表达式，它由 5 个空格分隔的字段组成，每个字段表示特定的时间单位：
+#
+#	•	分钟 (0-59)
+#	•	小时 (0-23)
+#	•	日期 (1-31)
+#	•	月份 (1-12)
+#	•	星期几 (0-7)（0 和 7 都表示星期日）
+
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: weekly-job
+spec:
+  schedule: "30 23 * * 1" #	Run at 11:30 PM every Monday
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+            - name: weekly-job
+              image: busybox:latest
+              imagePullPolicy: IfNotPresent
+              command:
+                - /bin/sh
+                - -c
+                - date; echo Hello!
+          restartPolicy: OnFailure
+
