@@ -1,0 +1,49 @@
+apiVersion: kubevirt.io/v1
+kind: VirtualMachine
+metadata:
+  labels:
+    kubevirt.io/os: linux
+  name: vm1
+spec:
+  running: true
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        kubevirt.io/domain: vm1
+    spec:
+      domain:
+        cpu:
+          cores: 1
+        devices:
+          disks:
+            - disk:
+                bus: virtio
+              name: disk0
+            - cdrom:
+                bus: sata
+                readonly: true
+              name: cloudinitdisk
+        resources:
+          requests:
+            memory: 128M
+      volumes:
+        - name: disk0
+          persistentVolumeClaim:
+            claimName: cirros
+        - name: cloudinitdisk
+          cloudInitNoCloud:
+            userData: |
+              #cloud-config
+              hostname: vm1
+              ssh_pwauth: True
+              disable_root: false
+              ssh_authorized_keys:
+                - ssh-rsa ...fLWVfL9Q3TmhjOBCDG14q4zC9JYZoGrNTPDo0J3/9F3VD0fvnmT7qy0f/50DoPqICG7WepQ7plbO2JWNz0GKYJm9QLB4mThOx2BoLtxMz...
+              users:
+                - name: fedora
+                  gecos: fedora
+                  groups: users, admin
+                  sudo: ALL=(ALL) NOPASSWD:ALL
+                  lock_passwd: false
+                  passwd: "$6$MgoYjxJTDg6VHhrn$1l/oZNUO43TXeEH6gLAxavEbrLhNCedAowhu0WruPwX04CNgs3QZnJQJS9usPT.NLgVvEGO8sD2sHSEHm1JWS1"
