@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: load-generator
+  namespace: default
+  labels:
+    app: load-generator
+spec:
+  selector:
+    matchLabels:
+      app: load-generator
+  template:
+    metadata:
+      labels:
+        app: load-generator
+    spec:
+      containers:
+        - name: busybox
+          image: busybox
+          args:
+            - /bin/sh
+            - -c
+            - "while true; do echo 'Generating CPU Load...'; yes > /dev/null; done"
+          resources:
+            limits:
+              cpu: "100m"    # 限制 CPU 使用率为 100 毫核（0.1 核心），避免对集群造成过大压力
+              memory: "64Mi" # 限制内存使用率为 64 MiB
+          securityContext:
+            allowPrivilegeEscalation: false
+      restartPolicy: Always
+  updateStrategy:
+    type: RollingUpdate

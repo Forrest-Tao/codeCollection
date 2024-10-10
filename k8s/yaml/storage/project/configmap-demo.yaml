@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: configmap-demo
+data:
+  key: "value"
+  key2: "value2"
+  file.txt: |
+    name=John
+    age=30
+  mysql.conf: |
+    color.good=green

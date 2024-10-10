@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: env-config-pod
+spec:
+  containers:
+    - name: app
+      image: docker.chenby.cn/busybox
+      command: ["/bin/sh","-c","printenv"]
+      envFrom:
+        - configMapRef:
+            name: title-configd
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: title-config
+data:
+  username: "admin"
+  password: "password"
