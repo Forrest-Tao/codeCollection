@@ -1,0 +1,12 @@
+#win的磁盘pvc
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: winhd
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 10Gi #可以设置大一点，发现win跑起来后，磁盘占了9.1G
+  storageClassName: "openebs-localpv"
