@@ -26,3 +26,9 @@ func GetContainerLog(clientset kubernetes.Clientset, namespace string, podName s
 	}
 	fmt.Println(string(logs))
 }
+
+//exec
+
+//logs
+
+//events
