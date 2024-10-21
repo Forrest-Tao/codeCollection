@@ -1,0 +1,75 @@
+#C盘
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: win-server-chd
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 20Gi
+  storageClassName: openebs-localpv
+---
+#D盘
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: win-server-dhd
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+  storageClassName: openebs-localpv
+---
+apiVersion: kubevirt.io/v1
+kind: VirtualMachine
+metadata:
+  name: win-server
+spec:
+  running: true
+  template:
+    metadata:
+      labels:
+        kubevirt.io/domain: win2k12-iso
+    spec:
+      domain:
+        cpu:
+          cores: 4
+        devices:
+          disks:
+            - bootOrder: 1
+              cdrom:
+                bus: sata
+              name: cdromiso
+            - bootOrder: 2
+              name : harddrivec
+              disk:
+                bus: virtio
+            - bootOrder: 3
+              name : harddrived
+              disk:
+                bus: virtio
+            - cdrom:
+                bus: sata
+              name: virtiocontainerdisk
+        machine:
+          type: q35
+        resources:
+          requests:
+            memory: 4G
+      volumes:
+        - name: cdromiso
+          persistentVolumeClaim:
+            claimName: win-server-iso
+        - name: harddrivec
+          persistentVolumeClaim:
+            claimName: win-server-chd
+        - name: harddrived
+          persistentVolumeClaim:
+            claimName: win-server-dhd
+        - containerDisk:
+            image: harbor.123.125.194.106.nip.io:10443/kubevirt/virtio-container-disk@sha256:01822363a3a0e370bdc4184f7a6e2da0c653c9246c7c7163a3ceb14b1f26103d
+          name: virtiocontainerdisk

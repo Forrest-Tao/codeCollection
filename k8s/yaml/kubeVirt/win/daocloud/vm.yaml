@@ -1,0 +1,71 @@
+apiVersion: kubevirt.io/v1
+kind: VirtualMachine
+metadata:
+  annotations:
+    kubevirt.io/latest-observed-api-version: v1
+    kubevirt.io/storage-observed-api-version: v1
+  labels:
+    virtnest.io/os-family: Windows
+    virtnest.io/os-version: '10'
+  name: windows10-virtio-1
+  namespace: default
+spec:
+  dataVolumeTemplates:
+    - metadata:
+        name: win10-system-virtio-1
+        namespace: default
+      spec:
+        pvc:
+          accessModes:
+            - ReadWriteOnce
+          resources:
+            requests:
+              storage: 32Gi
+          storageClassName: openebs-localpv
+        source:
+          blank: {}
+  running: true
+  template:
+    metadata:
+      labels:
+        kubevirt.io/domain: windows10-virtio
+    spec:
+      domain:
+        cpu:
+          cores: 8
+        devices:
+          disks:
+            - bootOrder: 1
+              disk:
+                bus: virtio # 使用 virtio
+              name: win10-system-virtio-1
+            - bootOrder: 2
+              cdrom:
+                bus: sata # 对于 ISO 镜像，使用 sata
+              name: iso-win10-1
+            - bootOrder: 3
+              cdrom:
+                bus: sata # 对于 containerdisk，使用 sata
+              name: virtiocontainerdisk
+          interfaces:
+            - masquerade: {}
+              model: e1000
+              name: default
+        machine:
+          type: q35
+        resources:
+          requests:
+            memory: 8G
+      networks:
+        - name: default
+          pod: {}
+      volumes:
+        - name: iso-win10-1
+          persistentVolumeClaim:
+            claimName: iso-win10-1
+        - name: win10-system-virtio-1
+          persistentVolumeClaim:
+            claimName: win10-system-virtio-1
+        - containerDisk:
+            image: harbor.123.125.194.106.nip.io:10443/kubevirt/virtio-container-disk@sha256:01822363a3a0e370bdc4184f7a6e2da0c653c9246c7c7163a3ceb14b1f26103d
+          name: virtiocontainerdisk

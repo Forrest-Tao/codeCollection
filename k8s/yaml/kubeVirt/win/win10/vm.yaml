@@ -1,0 +1,81 @@
+#win的磁盘pvc
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: win10-h
+  namespace: kubevirt
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 50Gi
+  storageClassName: "openebs-localpv"
+---
+apiVersion: kubevirt.io/v1
+kind: VirtualMachine
+metadata:
+  name: win10
+  namespace: kubevirt
+spec:
+  running: true
+  template:
+    metadata:
+      labels:
+        kubevirt.io/domain: win10
+        kubevirt.io/os: windows
+    spec:
+      domain:
+        clock:
+          utc: {}
+          timer:
+            hpet:
+              present: false
+            pit:
+              tickPolicy: delay
+            rtc:
+              tickPolicy: catchup
+            hyperv: {}
+        cpu:
+          cores: 4
+        devices:
+          disks:
+            - bootOrder: 1
+              cdrom:
+                bus: sata
+              name: cdromiso
+            - disk:
+                bus: virtio
+              name: harddrive
+              bootOrder: 2
+            - cdrom:
+                bus: sata
+              name: virtiocontainerdisk
+        machine:
+          type: q35
+        resources:
+          requests:
+            memory: 8G
+        features:
+          acpi: {}
+          apic: {}
+          hyperv:
+            relaxed: {}
+            spinlocks:
+              spinlocks: 8191
+            vapic: {}
+          smm: {}
+        firmware:
+           bootloader:
+             efi:
+               secureBoot: true
+      volumes:
+        - name: cdromiso
+          persistentVolumeClaim:
+            claimName: win10-iso
+        - name: harddrive
+          persistentVolumeClaim:
+            claimName: win10-hd
+        - containerDisk:
+            image: harbor.123.125.194.106.nip.io:10443/kubevirt/virtio-container-disk@sha256:01822363a3a0e370bdc4184f7a6e2da0c653c9246c7c7163a3ceb14b1f26103d
+          name: virtiocontainerdisk

@@ -128,7 +128,7 @@ var _ = BeforeSuite(func() {
 		If you want to test your custom controller logic, you’ll need to add some familiar-looking manager logic
 		to your BeforeSuite() function, so you can register your custom controller to run on this test cluster.
 
-		You may notice that the code below runs your controller with nearly identical logic to your CronJob project’s main.go!
+		You may notice that the code below runs your controller with nearly identical logic to your CronJob project’s pod.go!
 		The only difference is that the manager is started in a separate goroutine so it does not block the cleanup of envtest
 		when you’re done running your tests.
 

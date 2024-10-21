@@ -1,0 +1,72 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: win11-disk
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 32Gi
+  storageClassName: openebs-localpv
+---
+apiVersion: kubevirt.io/v1
+kind: VirtualMachineInstance
+metadata:
+  name: win11
+spec:
+  domain:
+    clock:
+      timer:
+        hpet:
+          present: false
+        hyperv: {}
+        pit:
+          tickPolicy: delay
+        rtc:
+          tickPolicy: catchup
+      utc: {}
+    cpu:
+      cores: 2
+    devices:
+      disks:
+        - disk:
+            bus: sata
+          name: win11-disk
+        - cdrom:
+            bus: sata
+          name: win11-iso
+        - cdrom:
+            bus: sata
+          name: virtio
+      interfaces:
+        - masquerade: {}
+          model: e1000
+          name: default
+      tpm: {}
+    features:
+      acpi: {}
+      apic: {}
+      hyperv:
+        relaxed: {}
+        spinlocks:
+          spinlocks: 8191
+        vapic: {}
+      smm: {}
+    resources:
+      requests:
+        memory: 8Gi
+  networks:
+    - name: default
+      pod: {}
+  terminationGracePeriodSeconds: 0
+  volumes:
+    - name: win11-disk
+      persistentVolumeClaim:
+        claimName: win11-disk
+    - name: win11-iso
+      persistentVolumeClaim:
+        claimName: win11-iso
+    - containerDisk:
+        image: harbor.123.125.194.106.nip.io:10443/kubevirt/virtio-container-disk@sha256:01822363a3a0e370bdc4184f7a6e2da0c653c9246c7c7163a3ceb14b1f26103d
+      name: virtio

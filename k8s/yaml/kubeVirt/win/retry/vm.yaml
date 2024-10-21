@@ -1,4 +1,17 @@
-apiVersion: kubevirt.io/v1alpha3
+#C盘
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: disk-win10cd
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 20Gi
+  storageClassName: openebs-localpv
+---
+apiVersion: kubevirt.io/v1
 kind: VirtualMachine
 metadata:
   name: win10
@@ -32,7 +45,7 @@ spec:
           type: q35
         resources:
           requests:
-            memory: 16G
+            memory: 8G
       networks:
         - name: default
           pod: {}
@@ -40,6 +53,9 @@ spec:
         - name: cdromiso
           persistentVolumeClaim:
             claimName: iso-win10
+        - name: harddrive
+          persistentVolumeClaim:
+            claimName: disk-win10
         - containerDisk:
-            image: kubevirt/virtio-container-disk
+            image: harbor.123.125.194.106.nip.io:10443/kubevirt/virtio-container-disk@sha256:01822363a3a0e370bdc4184f7a6e2da0c653c9246c7c7163a3ceb14b1f26103d
           name: virtiocontainerdisk

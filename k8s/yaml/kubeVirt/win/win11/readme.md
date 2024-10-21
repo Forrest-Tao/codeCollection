@@ -1,0 +1,1 @@
+virtctl image-upload dv win11-iso --uploadproxy-url=https://127.0.0.1:4443 --size=10Gi --image-path=./win11.iso --storage-class=openebs-localpv --volume-mode=filesystem --access-mode=ReadWriteOnce --force-bind --insecure

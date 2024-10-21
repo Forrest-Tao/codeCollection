@@ -112,7 +112,7 @@ var _ = Describe("CronJob controller", func() {
 			cronjobLookupKey := types.NamespacedName{Name: CronjobName, Namespace: CronjobNamespace}
 			createdCronjob := &cronjobv1.CronJob{}
 
-			// We'll need to retry getting this newly created CronJob, given that creation may not immediately happen.
+			// We'll need to win-server getting this newly created CronJob, given that creation may not immediately happen.
 			Eventually(func(g Gomega) {
 				g.Expect(k8sClient.Get(ctx, cronjobLookupKey, createdCronjob)).To(Succeed())
 			}, timeout, interval).Should(Succeed())

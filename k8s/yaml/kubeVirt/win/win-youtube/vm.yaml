@@ -1,13 +1,25 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: win2022-server-winhd
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 50Gi
+  storageClassName: openebs-localpv
+---
 apiVersion: kubevirt.io/v1
 kind: VirtualMachine
 metadata:
-  name: win-server
+  name: win2022-server-new
 spec:
   running: true
   template:
     metadata:
       labels:
-        kubevirt.io/domain: win-server
+        kubevirt.io/domain: win2022-server
         kubevirt.io/os: windows
     spec:
       domain:
@@ -28,14 +40,14 @@ spec:
             - bootOrder: 1
               cdrom:
                 bus: sata
-              name: cdromiso
+              name: win2022-server-cdromiso
             - disk:
                 bus: virtio
-              name: harddrive
+              name: win2022-server-harddrive
               bootOrder: 2
             - cdrom:
                 bus: sata
-              name: virtiocontainerdisk
+              name: win2022-server-virtiocontainerdisk
         machine:
           type: q35
         resources:
@@ -50,17 +62,17 @@ spec:
               spinlocks: 8191
             vapic: {}
           smm: {}
-        firmware:
-           bootloader:
-             efi:
-               secureBoot: true
+        # firmware:
+        #   bootloader:
+        #     efi:
+        #       secureBoot: true
       volumes:
-        - name: cdromiso
+        - name: win2022-server-cdromiso
           persistentVolumeClaim:
-            claimName: isohd
-        - name: harddrive
+            claimName: win2022-server-isohd
+        - name: win2022-server-harddrive
           persistentVolumeClaim:
-            claimName: winhd
+            claimName: win2022-server-winhd
         - containerDisk:
             image: kubevirt/virtio-container-disk
-          name: virtiocontainerdisk
+          name: win2022-server-virtiocontainerdisk

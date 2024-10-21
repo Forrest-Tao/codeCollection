@@ -1,0 +1,62 @@
+apiVersion: kubevirt.io/v1
+kind: VirtualMachine
+metadata:
+  name: ubuntu--docker-cuda
+  namespace: kubevirt
+spec:
+  running: true
+  template:
+    spec:
+      nodeSelector:
+        kubernetes.io/hostname: gpu-h100-02
+      tolerations:
+        - key: CriticalAddonsOnly
+          operator: Exists
+        - effect: NoSchedule
+          operator: Exists
+        - effect: NoExecute
+          operator: Exists
+        - key: "nvidia.com/gpu-h100"
+          operator: "Exists"
+          value: ""
+          effect: "NoSchedule"
+      dnsConfig:
+        nameservers:
+          - 10.96.0.10
+          - 8.8.8.8
+      domain:
+        devices:
+          gpus:
+            - deviceName: nvidia.com/GH100_H100_SXM5_80GB
+              name: gpu1
+            - deviceName: nvidia.com/GH100_H100_SXM5_80GB
+              name: gpu2
+#            - deviceName: nvidia.com/GH100_H100_SXM5_80GB
+#              name: gpu3
+#            - deviceName: nvidia.com/GH100_H100_SXM5_80GB
+#              name: gpu4
+          disks:
+            - bootOrder: 1
+              disk:
+                bus: virtio
+              name: harddrive
+            - disk:
+                bus: virtio
+              name: cloudinit
+        machine:
+          type: q35
+        resources:
+          requests:
+            memory: "4Gi"
+          limits:
+            memory: "4Gi"
+      volumes:
+        - containerDisk:
+            image: images.neolink-ai.com/admin/ubuntu22.04lts:with-docker-cuda
+          name: harddrive
+        - cloudInitNoCloud:
+            userData: |-
+              #cloud-config
+              password: ubuntu
+              chpasswd: { expire:False }
+          name: cloudinit

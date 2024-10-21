@@ -1,0 +1,55 @@
+apiVersion: kubevirt.io/v1
+kind: VirtualMachine
+metadata:
+  name: ubuntu-quay-2204
+  namespace: kubevirt
+spec:
+  running: true
+  template:
+    spec:
+      nodeSelector:
+        kubernetes.io/hostname: gpu-h100-02
+      tolerations:
+        - key: CriticalAddonsOnly
+          operator: Exists
+        - effect: NoSchedule
+          operator: Exists
+        - effect: NoExecute
+          operator: Exists
+        - key: "nvidia.com/gpu-h100"
+          operator: "Exists"
+          value: ""
+          effect: "NoSchedule"
+      dnsConfig:
+        nameservers:
+          - 10.96.0.10
+          - 8.8.8.8
+      domain:
+        devices:
+          gpus:
+            - deviceName: nvidia.com/GH100_H100_SXM5_80GB
+              name: gpu1
+          disks:
+            - bootOrder: 1
+              disk:
+                bus: virtio
+              name: harddrive
+            - disk:
+                bus: virtio
+              name: cloudinit
+        machine:
+          type: q35
+        resources:
+          limits:
+            cpu: "2"
+            memory: 4Gi
+      volumes:
+        - containerDisk:
+            image: images.neolink-ai.com/admin/ubuntu:22.04
+          name: harddrive
+        - cloudInitNoCloud:
+            userData: |-
+              #cloud-config
+              password: ubuntu
+              chpasswd: { expire:False }
+          name: cloudinit
