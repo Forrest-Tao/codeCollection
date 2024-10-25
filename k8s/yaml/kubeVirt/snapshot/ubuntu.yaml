@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: testvm-data-pvc
+  name: snapshot-ubuntu-data-pvc
 spec:
   accessModes:
     - ReadWriteOnce
@@ -13,7 +13,7 @@ spec:
 apiVersion: kubevirt.io/v1
 kind: VirtualMachine
 metadata:
-  name: testvm
+  name: ubuntu-vm
 spec:
   running: true
   template:
@@ -25,13 +25,13 @@ spec:
       domain:
         devices:
           disks:
-            - name: containerdisk
+            - name: cdromiso
               disk:
-                bus: virtio
-            - name: cloudinitdisk
+                bus: sata
+            - name: cloudinit
               disk:
-                bus: virtio
-            - name: testvm-data
+                bus: sata
+            - name: snapshot.yaml-ubuntu-data
               disk:
                 bus: sata
           interfaces:
@@ -39,17 +39,20 @@ spec:
               masquerade: {}
         resources:
           requests:
-            memory: 64M
+            memory: 4G
       networks:
         - name: default
           pod: {}
       volumes:
-        - name: containerdisk
-          containerDisk:
-            image: quay.io/kubevirt/cirros-container-disk-demo
-        - name: testvm-data
+        - name: cdromiso
           persistentVolumeClaim:
-            claimName: testvm-data-pvc
-        - name: cloudinitdisk
-          cloudInitNoCloud:
-            userDataBase64: SGkuXG4=
+            claimName: ubuntu-iso
+        - name: snapshot.yaml-ubuntu-data
+          persistentVolumeClaim:
+            claimName: snapshot.yaml-ubuntu-data-pvc
+        - cloudInitNoCloud:
+            userData: |-
+              #cloud-config
+              password: ubuntu
+              chpasswd: { expire:False }
+          name: cloudinit

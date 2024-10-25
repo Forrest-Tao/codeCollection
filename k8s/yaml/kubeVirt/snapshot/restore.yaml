@@ -1,0 +1,11 @@
+apiVersion: snapshot.kubevirt.io/v1alpha1
+kind: VirtualMachineRestore
+metadata:
+  name: ubuntu-restore
+  namespace: default
+spec:
+  target:
+    apiGroup: kubevirt.io
+    kind: VirtualMachine
+    name: ubuntu-vm
+  virtualMachineSnapshotName: ubuntu-snapshot

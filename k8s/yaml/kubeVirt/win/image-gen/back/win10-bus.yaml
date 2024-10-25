@@ -1,0 +1,111 @@
+#C盘
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  annotations:
+    volume.kubernetes.io/selected-node: gpu-3090-10
+  name: disk-business-win10cd
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 50Gi
+  storageClassName: "openebs-localpv-kubevirt"
+---
+apiVersion: kubevirt.io/v1
+kind: VirtualMachine
+metadata:
+  name: win10-imagegen-business
+  namespace: kubevirt
+spec:
+  dataVolumeTemplates:
+    - metadata:
+        name: win10-business-isohd
+      spec:
+        source:
+          pvc:
+            name: win10-business-iso-template
+            namespace: kubevirt
+        pvc:
+          storageClassName: "openebs-localpv-kubevirt"
+          accessModes:
+            - ReadWriteOnce
+          resources:
+            requests:
+              storage: 65Gi
+  running: true
+  template:
+    spec:
+      dnsConfig:
+        nameservers:
+          - 10.96.0.10
+          - 8.8.8.8
+      domain:
+        clock:
+          timer:
+            hpet:
+              present: false
+            hyperv: {}
+            pit:
+              tickPolicy: delay
+            rtc:
+              tickPolicy: catchup
+          utc: {}
+        cpu:
+          cores: 16
+        devices:
+          disks:
+            - bootOrder: 1
+              cdrom:
+                bus: sata
+              name: cdromiso
+            #磁盘用virtio
+            - disk:
+                bus: sata
+              name: harddrive
+            - cdrom:
+                bus: sata
+              name: virtiocontainerdisk
+          gpus:
+          - deviceName: nvidia.com/GA102_GEFORCE_RTX_3090
+            name: gpu1
+        features:
+          acpi: {}
+          apic: {}
+          hyperv:
+            relaxed: {}
+            spinlocks:
+              spinlocks: 8191
+            vapic: {}
+        machine:
+          type: q35
+        resources:
+          requests:
+            cpu: "16"
+            memory: 16Gi
+          limits:
+            cpu: "16"
+            memory: 16Gi
+      nodeSelector:
+        kubernetes.io/hostname: gpu-3090-10
+      tolerations:
+        - key: CriticalAddonsOnly
+          operator: Exists
+        - effect: NoSchedule
+          operator: Exists
+        - effect: NoExecute
+          operator: Exists
+        - effect: NoSchedule
+          key: nvidia.com/gpu-3090
+          operator: Exists
+      volumes:
+        - name: cdromiso
+          persistentVolumeClaim:
+            claimName: win10-business-isohd #iso文件
+        - name: harddrive
+          persistentVolumeClaim:
+            claimName: disk-business-win10cd #C盘
+        - name: virtiocontainerdisk
+          containerDisk:
+            image: images.neolink-ai.com/admin/virtio-container-disk:20241024_891122a6fc #virtio 驱动

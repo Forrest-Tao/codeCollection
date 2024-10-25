@@ -1,0 +1,124 @@
+apiVersion: kubevirt.io/v1
+kind: VirtualMachineInstance
+metadata:
+  annotations:
+    kubectl.kubernetes.io/last-applied-configuration: |
+      {"apiVersion":"kubevirt.io/v1","kind":"VirtualMachineInstance","metadata":{"annotations":{},"labels":{"expose":"me"},"name":"vmi-fedora","namespace":"default"},"spec":{"domain":{"devices":{"disks":[{"disk":{"bus":"virtio"},"name":"containerdisk"},{"disk":{"bus":"virtio"},"name":"cloudinitdisk"}]},"resources":{"requests":{"memory":"1024M"}}},"hostname":"myvmi","subdomain":"mysubdomain","terminationGracePeriodSeconds":0,"volumes":[{"containerDisk":{"image":"harbor.123.125.194.106.nip.io:10443/kubevirt1/fedora-cloud-registry-disk-demo@sha256:740fa03e40d58efe2196735318dd4e15371c2fc40e399b012b4fe4f92a4a160d"},"name":"containerdisk"},{"cloudInitNoCloud":{"userDataBase64":"IyEvYmluL2Jhc2gKZWNobyAiZmVkb3JhOmZlZG9yYSIgfCBjaHBhc3N3ZAo="},"name":"cloudinitdisk"}]}}
+    kubevirt.io/latest-observed-api-version: v1
+    kubevirt.io/storage-observed-api-version: v1
+  creationTimestamp: "2024-10-15T10:56:16Z"
+  finalizers:
+    - foregroundDeleteVirtualMachine
+  generation: 10
+  labels:
+    expose: me
+    kubevirt.io/nodeName: mc-master01
+  name: vmi-fedora
+  namespace: default
+  resourceVersion: "28388832"
+  uid: fcb564cc-3edf-495e-ab51-62563d743127
+spec:
+  architecture: amd64
+  domain:
+    cpu:
+      cores: 1
+      model: host-model
+      sockets: 1
+      threads: 1
+    devices:
+      disks:
+        - disk:
+            bus: virtio
+          name: containerdisk
+        - disk:
+            bus: virtio
+          name: cloudinitdisk
+      interfaces:
+        - bridge: {}
+          name: default
+    features:
+      acpi:
+        enabled: true
+    firmware:
+      uuid: 8f011e97-1d49-438f-b1ed-ec74176fbf29
+    machine:
+      type: q35
+    memory:
+      guest: 1024M
+    resources:
+      requests:
+        memory: 1024M
+  evictionStrategy: None
+  hostname: myvmi
+  networks:
+    - name: default
+      pod: {}
+  subdomain: mysubdomain
+  terminationGracePeriodSeconds: 0
+  volumes:
+    - containerDisk:
+        image: harbor.123.125.194.106.nip.io:10443/kubevirt1/fedora-cloud-registry-disk-demo@sha256:740fa03e40d58efe2196735318dd4e15371c2fc40e399b012b4fe4f92a4a160d
+        imagePullPolicy: IfNotPresent
+      name: containerdisk
+    - cloudInitNoCloud:
+        userDataBase64: IyEvYmluL2Jhc2gKZWNobyAiZmVkb3JhOmZlZG9yYSIgfCBjaHBhc3N3ZAo=
+      name: cloudinitdisk
+status:
+  activePods:
+    1473404f-1cfa-4f4d-882d-124ea3c0d939: mc-master01
+  conditions:
+    - lastProbeTime: null
+      lastTransitionTime: "2024-10-15T10:56:21Z"
+      status: "True"
+      type: Ready
+    - lastProbeTime: null
+      lastTransitionTime: null
+      message: cannot migrate VMI which does not use masquerade, bridge with kubevirt.io/allow-pod-bridge-network-live-migration
+        VM annotation or a migratable plugin to connect to the pod network
+      reason: InterfaceNotLiveMigratable
+      status: "False"
+      type: LiveMigratable
+  currentCPUTopology:
+    cores: 1
+    sockets: 1
+    threads: 1
+  guestOSInfo: {}
+  interfaces:
+    - infoSource: domain
+      ipAddress: 172.31.95.173
+      ipAddresses:
+        - 172.31.95.173
+      mac: 52:94:2d:2a:74:4f
+      name: default
+      queueCount: 1
+  launcherContainerImageVersion: quay.io/kubevirt/virt-launcher:v1.3.1
+  machine:
+    type: pc-q35-rhel9.4.0
+  memory:
+    guestAtBoot: 1024M
+    guestCurrent: 1000000Ki
+    guestRequested: 1024M
+  migrationMethod: BlockMigration
+  migrationTransport: Unix
+  nodeName: mc-master01
+  phase: Running
+  phaseTransitionTimestamps:
+    - phase: Pending
+      phaseTransitionTimestamp: "2024-10-15T10:56:16Z"
+    - phase: Scheduling
+      phaseTransitionTimestamp: "2024-10-15T10:56:16Z"
+    - phase: Scheduled
+      phaseTransitionTimestamp: "2024-10-15T10:56:21Z"
+    - phase: Running
+      phaseTransitionTimestamp: "2024-10-15T10:56:24Z"
+  qosClass: Burstable
+  runtimeUser: 0
+  selinuxContext: none
+  volumeStatus:
+    - name: cloudinitdisk
+      size: 1048576
+      target: vdb
+    - containerDiskVolume:
+        checksum: 2009656432
+      name: containerdisk
+      target: vda

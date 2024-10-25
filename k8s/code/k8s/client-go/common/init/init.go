@@ -1,7 +1,7 @@
 package init
 
 import (
-	utils "codeCollection/k8s/code/client-go/common/utils"
+	"codeCollection/k8s/code/client-go/utils"
 	"k8s.io/client-go/kubernetes"
 )
 

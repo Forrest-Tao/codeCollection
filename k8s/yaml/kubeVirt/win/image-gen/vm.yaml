@@ -1,0 +1,101 @@
+#apiVersion: v1
+#kind: PersistentVolumeClaim
+#metadata:
+#  name: win10-consumer-virtio
+#  namespace: kubevirt
+#spec:
+#  accessModes:
+#    - ReadWriteOnce
+#  resources:
+#    requests:
+#      storage: 4Gi
+#  storageClassName: "openebs-localpv-kubevirt"
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: win10-consumer-iso
+  namespace: kubevirt
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 50Gi
+  storageClassName: "openebs-localpv-kubevirt"
+---
+apiVersion: kubevirt.io/v1
+kind: VirtualMachine
+metadata:
+  name: win10-imagegen-consumer
+  namespace: kubevirt
+spec:
+  running: true
+  template:
+    spec:
+      dnsConfig:
+        nameservers:
+          - 10.96.0.10
+          - 8.8.8.8
+      domain:
+        clock:
+          timer:
+            hpet:
+              present: false
+            hyperv: {}
+            pit:
+              tickPolicy: delay
+            rtc:
+              tickPolicy: catchup
+          utc: {}
+        cpu:
+          cores: 16
+        devices:
+          disks:
+            - bootOrder: 1
+              cdrom:
+                bus: sata
+              name: win10-consumer-iso
+            - bootOrder: 2
+              cdrom:
+                bus: sata
+              name: virtiocontainerdisk
+        features:
+          acpi: {}
+          apic: {}
+          hyperv:
+            relaxed: {}
+            spinlocks:
+              spinlocks: 8191
+            vapic: {}
+        machine:
+          type: q35
+        resources:
+          limits:
+            cpu: "16"
+            memory: 32Gi
+          requests:
+            cpu: "16"
+            memory: 32Gi
+      nodeSelector:
+        kubernetes.io/hostname: gpu-3090-10
+      tolerations:
+        - key: CriticalAddonsOnly
+          operator: Exists
+        - effect: NoSchedule
+          operator: Exists
+        - effect: NoExecute
+          operator: Exists
+        - effect: NoSchedule
+          key: nvidia.com/gpu-3090
+          operator: Exists
+      volumes:
+        - name: win10-consumer-iso
+          persistentVolumeClaim:
+            claimName: win10-consumer-iso
+        - containerDisk:
+            image: images.neolink-ai.com/admin/virtio-container-disk:v1.0-20241023
+          name: virtiocontainerdisk
+#        - name: win10-consumer-virtio
+#          persistentVolumeClaim:
+#            claimName: win10-consumer-virtio

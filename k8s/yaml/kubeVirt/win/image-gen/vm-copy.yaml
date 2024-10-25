@@ -4,12 +4,38 @@ metadata:
   name: win10-imagegen-consumer
   namespace: kubevirt
 spec:
+  dataVolumeTemplates:
+    - metadata:
+        name: win10-consumer-iso
+      spec:
+        source:
+          pvc:
+            name: win10-consumer-iso-template
+            namespace: kubevirt
+        pvc:
+          storageClassName: "openebs-localpv-kubevirt"
+          accessModes:
+            - ReadWriteOnce
+          resources:
+            requests:
+              storage: "55Gi"
+    - metadata:
+        name: win10-consumer-virtio
+      spec:
+        source:
+          pvc:
+            name: win10-consumer-virtio-template
+            namespace: kubevirt
+        pvc:
+          storageClassName: "openebs-localpv-kubevirt"
+          accessModes:
+            - ReadWriteOnce
+          resources:
+            requests:
+              storage: "6Gi"
   runStrategy: RerunOnFailure
   template:
-    metadata:
-      creationTimestamp: null
     spec:
-      architecture: amd64
       dnsConfig:
         nameservers:
           - 10.96.0.10
@@ -26,22 +52,21 @@ spec:
               tickPolicy: catchup
           utc: {}
         cpu:
-          cores: 4
+          cores: 16
         devices:
           disks:
             - bootOrder: 1
-              disk:
-                bus: virtio
+              cdrom:
+                bus: sata
               name: win10-consumer-iso
-            - bootOrder: 2
-              disk:
+            - cdrom:
                 bus: sata
               name: win10-consumer-virtio
           gpus:
-#            - deviceName: nvidia.com/GA102_GEFORCE_RTX_3090
-#              name: gpu1
-#            - deviceName: nvidia.com/GA102_GEFORCE_RTX_3090
-#              name: gpu2
+        #            - deviceName: nvidia.com/GA102_GEFORCE_RTX_3090
+        #              name: gpu1
+        #            - deviceName: nvidia.com/GA102_GEFORCE_RTX_3090
+        #              name: gpu2
         features:
           acpi: {}
           apic: {}
@@ -54,11 +79,11 @@ spec:
           type: q35
         resources:
           limits:
-            cpu: "4"
-            memory: 8Gi
+            cpu: "16"
+            memory: 32Gi
           requests:
-            cpu: "4"
-            memory: 8Gi
+            cpu: "16"
+            memory: 32Gi
       nodeSelector:
         kubernetes.io/hostname: gpu-3090-10
       tolerations:

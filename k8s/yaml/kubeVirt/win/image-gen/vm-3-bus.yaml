@@ -18,7 +18,7 @@ kind: PersistentVolumeClaim
 metadata:
   annotations:
     volume.kubernetes.io/selected-node: gpu-3090-10
-  name: disk-win10cd
+  name: disk-win10cd-bus
 spec:
   accessModes:
     - ReadWriteOnce
@@ -30,16 +30,16 @@ spec:
 apiVersion: kubevirt.io/v1
 kind: VirtualMachine
 metadata:
-  name: win10-imagegen-consumer
+  name: win10-imagegen-business
   namespace: kubevirt
 spec:
   dataVolumeTemplates:
     - metadata:
-        name: win10-consumer-isohd
+        name: win10-business-isohd
       spec:
         source:
           pvc:
-            name: win10-consumer-iso-template
+            name: win10-business-iso-template
             namespace: kubevirt
         pvc:
           storageClassName: "openebs-localpv-kubevirt"
@@ -113,10 +113,10 @@ spec:
       volumes:
         - name: cdromiso
           persistentVolumeClaim:
-            claimName: win10-consumer-isohd #iso文件
+            claimName: win10-business-isohd #iso文件
         - name: harddrive
           persistentVolumeClaim:
-            claimName: disk-win10cd #C盘
+            claimName: disk-win10cd-bus #C盘
         - name: virtiocontainerdisk
           containerDisk:
             image: images.neolink-ai.com/admin/virtio-container-disk:v1.0-20241023 #virtio 驱动

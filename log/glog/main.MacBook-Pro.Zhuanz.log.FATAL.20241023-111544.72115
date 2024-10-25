@@ -1,0 +1,13 @@
+Log file created at: 2024/10/23 11:15:44
+Running on machine: MacBook-Pro
+Binary: Built with gc go1.23.1 for darwin/arm64
+Previous log: <none>
+Log line format: [IWEF]mmdd hh:mm:ss.uuuuuu threadid file:line] msg
+F1023 11:15:44.253723   72115 main.go:16] fatal
+
+goroutine 1 [running]:
+github.com/golang/glog.Fatal(...)
+	/Users/Zhuanz/go/pkg/mod/github.com/golang/glog@v1.2.2/glog.go:664
+main.main()
+	/Users/Zhuanz/go/src/codeCollection/log/glog/main.go:16 +0x15c
+

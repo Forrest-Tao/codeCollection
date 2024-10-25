@@ -1,0 +1,27 @@
+# permissions for end users to edit autoservices.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app.kubernetes.io/name: controller-demo
+    app.kubernetes.io/managed-by: kustomize
+  name: autoservice-editor-role
+rules:
+- apiGroups:
+  - batch.modc.com
+  resources:
+  - autoservices
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - batch.modc.com
+  resources:
+  - autoservices/status
+  verbs:
+  - get

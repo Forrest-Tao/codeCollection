@@ -62,12 +62,7 @@ spec:
               name: win10-consumer-iso
             - cdrom:
                 bus: sata
-              name: win10-consumer-virtio
-          gpus:
-        #            - deviceName: nvidia.com/GA102_GEFORCE_RTX_3090
-        #              name: gpu1
-        #            - deviceName: nvidia.com/GA102_GEFORCE_RTX_3090
-        #              name: gpu2
+              name: virtiocontainerdisk
         features:
           acpi: {}
           apic: {}
@@ -101,6 +96,6 @@ spec:
         - name: win10-consumer-iso
           persistentVolumeClaim:
             claimName: win10-consumer-iso
-        - name: win10-consumer-virtio
-          persistentVolumeClaim:
-            claimName: win10-consumer-virtio
+        - containerDisk:
+            image: kubevirt/virtio-container-disk
+          name: virtiocontainerdisk

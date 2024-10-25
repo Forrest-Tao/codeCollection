@@ -2,60 +2,107 @@
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: disk-win10cd
+  annotations:
+    volume.kubernetes.io/selected-node: gpu-3090-10
+  name: disk-consumer-win10cd
 spec:
   accessModes:
     - ReadWriteOnce
   resources:
     requests:
-      storage: 20Gi
-  storageClassName: openebs-localpv
+      storage: 100Gi
+  storageClassName: "openebs-localpv-kubevirt"
 ---
 apiVersion: kubevirt.io/v1
 kind: VirtualMachine
 metadata:
-  name: win10
+  name: win10-imagegen-consumer
+  namespace: kubevirt
 spec:
-  running: false
+  dataVolumeTemplates:
+    - metadata:
+        name: win10-consumer-isohd
+      spec:
+        source:
+          pvc:
+            name: win10-consumer-iso-template
+            namespace: kubevirt
+        pvc:
+          storageClassName: "openebs-localpv-kubevirt"
+          accessModes:
+            - ReadWriteOnce
+          resources:
+            requests:
+              storage: 55Gi
+  running: true
   template:
-    metadata:
-      labels:
-        kubevirt.io/domain: win10
     spec:
+      dnsConfig:
+        nameservers:
+          - 10.96.0.10
+          - 8.8.8.8
       domain:
+        clock:
+          timer:
+            hpet:
+              present: false
+            hyperv: {}
+            pit:
+              tickPolicy: delay
+            rtc:
+              tickPolicy: catchup
+          utc: {}
         cpu:
-          cores: 4
+          cores: 32
         devices:
           disks:
             - bootOrder: 1
               cdrom:
                 bus: sata
               name: cdromiso
+            #磁盘用virtio
             - disk:
                 bus: virtio
               name: harddrive
             - cdrom:
                 bus: sata
               name: virtiocontainerdisk
-          interfaces:
-            - masquerade: {}
-              model: e1000
-              name: default
+        features:
+          acpi: {}
+          apic: {}
+          hyperv:
+            relaxed: {}
+            spinlocks:
+              spinlocks: 8191
+            vapic: {}
         machine:
           type: q35
         resources:
           requests:
-            memory: 8G
-      networks:
-        - name: default
-          pod: {}
+            cpu: "32"
+            memory: 32Gi
+          limits:
+            cpu: "32"
+            memory: 32Gi
+      nodeSelector:
+        kubernetes.io/hostname: gpu-3090-10
+      tolerations:
+        - key: CriticalAddonsOnly
+          operator: Exists
+        - effect: NoSchedule
+          operator: Exists
+        - effect: NoExecute
+          operator: Exists
+        - effect: NoSchedule
+          key: nvidia.com/gpu-3090
+          operator: Exists
       volumes:
         - name: cdromiso
           persistentVolumeClaim:
-            claimName: iso-win10
+            claimName: win10-consumer-isohd #iso文件
         - name: harddrive
           persistentVolumeClaim:
-            claimName: disk-win10
-        - containerDisk:
-            image: harbor.123.125.194.106.nip.io:10443/kubevirt/virtio-container-disk@sha256:01822363a3a0e370bdc4184f7a6e2da0c653c9246c7c7163a3ceb14b1f26103d
-          name: virtiocontainerdisk
+            claimName: disk-consumer-win10cd #C盘
+        - name: virtiocontainerdisk
+          containerDisk:
+            image: images.neolink-ai.com/admin/virtio-container-disk:20241024_891122a6fc #virtio 驱动
