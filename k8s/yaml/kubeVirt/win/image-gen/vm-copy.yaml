@@ -1,0 +1,80 @@
+apiVersion: kubevirt.io/v1
+kind: VirtualMachine
+metadata:
+  name: win10-imagegen-consumer
+  namespace: kubevirt
+spec:
+  runStrategy: RerunOnFailure
+  template:
+    metadata:
+      creationTimestamp: null
+    spec:
+      architecture: amd64
+      dnsConfig:
+        nameservers:
+          - 10.96.0.10
+          - 8.8.8.8
+      domain:
+        clock:
+          timer:
+            hpet:
+              present: false
+            hyperv: {}
+            pit:
+              tickPolicy: delay
+            rtc:
+              tickPolicy: catchup
+          utc: {}
+        cpu:
+          cores: 4
+        devices:
+          disks:
+            - bootOrder: 1
+              disk:
+                bus: virtio
+              name: win10-consumer-iso
+            - bootOrder: 2
+              disk:
+                bus: sata
+              name: win10-consumer-virtio
+          gpus:
+#            - deviceName: nvidia.com/GA102_GEFORCE_RTX_3090
+#              name: gpu1
+#            - deviceName: nvidia.com/GA102_GEFORCE_RTX_3090
+#              name: gpu2
+        features:
+          acpi: {}
+          apic: {}
+          hyperv:
+            relaxed: {}
+            spinlocks:
+              spinlocks: 8191
+            vapic: {}
+        machine:
+          type: q35
+        resources:
+          limits:
+            cpu: "4"
+            memory: 8Gi
+          requests:
+            cpu: "4"
+            memory: 8Gi
+      nodeSelector:
+        kubernetes.io/hostname: gpu-3090-10
+      tolerations:
+        - key: CriticalAddonsOnly
+          operator: Exists
+        - effect: NoSchedule
+          operator: Exists
+        - effect: NoExecute
+          operator: Exists
+        - effect: NoSchedule
+          key: nvidia.com/gpu-3090
+          operator: Exists
+      volumes:
+        - name: win10-consumer-iso
+          persistentVolumeClaim:
+            claimName: win10-consumer-iso
+        - name: win10-consumer-virtio
+          persistentVolumeClaim:
+            claimName: win10-consumer-virtio

@@ -1,0 +1,122 @@
+#apiVersion: v1
+#kind: PersistentVolumeClaim
+#metadata:
+#  annotations:
+#    volume.kubernetes.io/selected-node: gpu-3090-10
+#  name: win10-consumer-isohd
+#spec:
+#  accessModes:
+#    - ReadWriteOnce
+#  resources:
+#    requests:
+#      storage: 15Gi
+#  storageClassName: "openebs-localpv-kubevirt"
+---
+#C盘
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  annotations:
+    volume.kubernetes.io/selected-node: gpu-3090-10
+  name: disk-win10cd
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 100Gi
+  storageClassName: "openebs-localpv-kubevirt"
+---
+apiVersion: kubevirt.io/v1
+kind: VirtualMachine
+metadata:
+  name: win10-imagegen-consumer
+  namespace: kubevirt
+spec:
+  dataVolumeTemplates:
+    - metadata:
+        name: win10-consumer-isohd
+      spec:
+        source:
+          pvc:
+            name: win10-consumer-iso-template
+            namespace: kubevirt
+        pvc:
+          storageClassName: "openebs-localpv-kubevirt"
+          accessModes:
+            - ReadWriteOnce
+          resources:
+            requests:
+              storage: 55Gi
+  running: true
+  template:
+    spec:
+      dnsConfig:
+        nameservers:
+          - 10.96.0.10
+          - 8.8.8.8
+      domain:
+        clock:
+          timer:
+            hpet:
+              present: false
+            hyperv: {}
+            pit:
+              tickPolicy: delay
+            rtc:
+              tickPolicy: catchup
+          utc: {}
+        cpu:
+          cores: 32
+        devices:
+          disks:
+            - bootOrder: 1
+              cdrom:
+                bus: sata
+              name: cdromiso
+            #磁盘用virtio
+            - disk:
+                bus: sata
+              name: harddrive
+            - cdrom:
+                bus: sata
+              name: virtiocontainerdisk
+#        features:
+#          acpi: {}
+#          apic: {}
+#          hyperv:
+#            relaxed: {}
+#            spinlocks:
+#              spinlocks: 8191
+#            vapic: {}
+        machine:
+          type: q35
+        resources:
+          requests:
+            cpu: "32"
+            memory: 32Gi
+          limits:
+            cpu: "32"
+            memory: 32Gi
+      nodeSelector:
+        kubernetes.io/hostname: gpu-3090-10
+      tolerations:
+        - key: CriticalAddonsOnly
+          operator: Exists
+        - effect: NoSchedule
+          operator: Exists
+        - effect: NoExecute
+          operator: Exists
+        - effect: NoSchedule
+          key: nvidia.com/gpu-3090
+          operator: Exists
+      volumes:
+        - name: cdromiso
+          persistentVolumeClaim:
+            claimName: win10-consumer-isohd #iso文件
+        - name: harddrive
+          persistentVolumeClaim:
+            claimName: disk-win10cd #C盘
+        - name: virtiocontainerdisk
+          containerDisk:
+            image: images.neolink-ai.com/admin/virtio-container-disk:v1.0-20241023 #virtio 驱动
