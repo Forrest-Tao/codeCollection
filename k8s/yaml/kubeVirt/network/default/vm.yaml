@@ -57,7 +57,7 @@ spec:
   terminationGracePeriodSeconds: 0
   volumes:
     - containerDisk:
-        image: harbor.123.125.194.106.nip.io:10443/kubevirt1/fedora-cloud-registry-disk-demo@sha256:740fa03e40d58efe2196735318dd4e15371c2fc40e399b012b4fe4f92a4a160d
+        image: harbor.123.125.194.106.nip.io:10443/kubevirt1/fedora-cloud-registry-volume-demo@sha256:740fa03e40d58efe2196735318dd4e15371c2fc40e399b012b4fe4f92a4a160d
         imagePullPolicy: IfNotPresent
       name: containerdisk
     - cloudInitNoCloud:

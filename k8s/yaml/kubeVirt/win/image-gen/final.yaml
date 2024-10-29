@@ -102,7 +102,7 @@ spec:
             claimName: win10-consumer-isohd #iso文件
         - name: harddrive
           persistentVolumeClaim:
-            claimName: disk-win10cd #C盘
+            claimName: volume-win10cd #C盘
         - name: virtiocontainerdisk
           containerDisk:
-            image: images.neolink-ai.com/admin/virtio-container-disk:v1.0-20241023 #virtio 驱动
+            image: images.neolink-ai.com/admin/virtio-container-volume:v1.0-20241023 #virtio 驱动

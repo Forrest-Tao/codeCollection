@@ -1,0 +1,15 @@
+apiVersion: cdi.kubevirt.io/v1beta1
+kind: DataVolume
+metadata:
+  name: example-volume-hotplug
+  namespace: kubevirt
+spec:
+  source:
+    blank: {}
+  storage:
+    storageClassName: "openebs-localpv"
+    accessModes:
+      - ReadWriteOnce
+    resources:
+      requests:
+        storage: 1Gi

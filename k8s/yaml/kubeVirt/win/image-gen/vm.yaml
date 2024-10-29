@@ -94,7 +94,7 @@ spec:
           persistentVolumeClaim:
             claimName: win10-consumer-iso
         - containerDisk:
-            image: images.neolink-ai.com/admin/virtio-container-disk:v1.0-20241023
+            image: images.neolink-ai.com/admin/virtio-container-volume:v1.0-20241023
           name: virtiocontainerdisk
 #        - name: win10-consumer-virtio
 #          persistentVolumeClaim:

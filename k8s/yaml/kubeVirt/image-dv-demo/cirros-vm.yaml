@@ -1,0 +1,41 @@
+apiVersion: kubevirt.io/v1alpha3
+kind: VirtualMachine
+metadata:
+  labels:
+    kubevirt.io/vm: vm-fedora-datavolume
+  name: vm1
+spec:
+  dataVolumeTemplates:
+    - metadata:
+        creationTimestamp: null
+        name: vm1-dv
+      spec:
+        storage:
+          accessModes:
+            - ReadWriteOnce
+          resources:
+            requests:
+              storage: 100M
+          storageClassName: openebs-localpv
+        source:
+          registry:
+            url: docker://quay.io/kubevirt/cirros-container-volume-demo
+  running: true
+  template:
+    spec:
+      domain:
+        devices:
+          disks:
+            - disk:
+                bus: virtio
+              name: datavolumevolume
+        machine:
+          type: ""
+        resources:
+          requests:
+            memory: 64M
+      terminationGracePeriodSeconds: 0
+      volumes:
+        - dataVolume:
+            name: vm1-dv
+          name: datavolumevolume

@@ -74,5 +74,5 @@ spec:
           persistentVolumeClaim:
             claimName: win2022-server-winhd
         - containerDisk:
-            image: kubevirt/virtio-container-disk
+            image: kubevirt/virtio-container-volume
           name: win2022-server-virtiocontainerdisk

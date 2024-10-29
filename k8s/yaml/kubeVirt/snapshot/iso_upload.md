@@ -13,13 +13,13 @@ virtctl image-upload dv ubuntu-iso --uploadproxy-url=https://127.0.0.1:4443 --si
 ```bash
 ubuntu@ubuntu-vm:~$ lsblk
 NAME    MAJ:MIN RM  SIZE RO TYPE MOUNTPOINTS
-sda       8:0    0    6G  0 disk 
+sda       8:0    0    6G  0 volume 
 ├─sda1    8:1    0    5G  0 part /
 ├─sda14   8:14   0    4M  0 part 
 ├─sda15   8:15   0  106M  0 part /boot/efi
 └─sda16 259:0    0  913M  0 part /boot
-sdb       8:16   0    1M  0 disk 
-sdc       8:32   0   10G  0 disk   🏅
+sdb       8:16   0    1M  0 volume 
+sdc       8:32   0   10G  0 volume   🏅
 ```
 k 
 

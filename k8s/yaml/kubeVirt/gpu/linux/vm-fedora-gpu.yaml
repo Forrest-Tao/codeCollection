@@ -45,7 +45,7 @@ spec:
       terminationGracePeriodSeconds: 0
       volumes:
         - containerDisk:
-            image: images.neolink-ai.com/admin/fedora-cloud-container-disk-demo:devel
+            image: images.neolink-ai.com/admin/fedora-cloud-container-volume-demo:devel
           name: containerdisk
         - cloudInitNoCloud:
             userData: |-

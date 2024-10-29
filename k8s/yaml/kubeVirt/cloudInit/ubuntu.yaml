@@ -1,0 +1,66 @@
+apiVersion: kubevirt.io/v1
+kind: VirtualMachine
+metadata:
+  name: ubuntu-cloudinit-test
+  labels:
+    vmName: ubuntu-cloudinit-test
+    os: ubuntu
+spec:
+  running: true
+  dataVolumeTemplates:
+    - metadata:
+        name: ubuntu-dv
+      spec:
+        storage:
+          accessModes:
+            - ReadWriteOnce
+          resources:
+            requests:
+              storage: 50Gi
+          storageClassName: openebs-localpv
+        source:
+          registry:
+            url: ---docker://harbor.123.125.194.106.nip.io:10443/kubevirt1/ubuntu22.04lts@sha256:5a9b884025861c3888e885b18c21f3311dd15a9ae6195fbc2e94a03dc---
+  template:
+    metadata:
+      labels:
+        os: ubuntu
+        sshtest: "true"
+    spec:
+      domain:
+        cpu:
+          cores: 4
+        devices:
+          disks:
+            - name: datavolumevolume
+              disk:
+                bus: virtio
+            - name: cloudinitdisk
+              disk:
+                bus: virtio
+          interfaces:
+            - name: default
+              masquerade: {}
+        resources:
+          requests:
+            memory: 8Gi
+      networks:
+        - name: default
+          pod: {}
+      volumes:
+        - name: datavolumevolume
+          dataVolume:
+            name: ubuntu-dv
+        - name: cloudinitdisk
+          cloudInitNoCloud:
+            userData: |
+              #cloud-config
+              hostname: vm1
+              ssh_pwauth: True
+              disable_root: false
+              ssh_authorized_keys:
+                - ssh-rsa ....To+J8oTK2TeBh+ZoJlpsjL8M6YHWAgLR5jSuO3ABugmISW2n4KK3V79UF1mOL70zhCIg0L7JJm/Ic/ytyR95n5ZvsQyPWEHgBHWbxgd2WLisp9PYfKo7Zl94AzaGjcNey0FP3ZcjqLnj01FPc4sOqTpq9ap9eKGklLTE5NTOlUwt+fbQYG7tuH9x5SKu4PhW40y2uvIe59hKqccmz1GPwJY4KoFtzA3wdc/TrCSryVkFsHseMlYjiPymGVH9N+QrO56au2YPA1p725YsfJi0tIM8NOC48UXpodiquGKwIYXuczRuXZ14hPU7z5+dpKYhnvh0hp8QEcS2VFRexAzUct2sSMkSYA35n9Od2u+6zc06ScFzV/sCWYLrQXuXE1JHnV0KlPmAKJVKoAEupl9c3J2i1/pL7aZlQnKb81FrDo8ITyNOX2d5FJfUERHoAc6qtwFEJaGPJFBKkkWh...
+              chpasswd:
+                list: |
+                  ubuntu:ubuntu #默认为用户名为ubuntu，密码为ubuntu
+                expire: False

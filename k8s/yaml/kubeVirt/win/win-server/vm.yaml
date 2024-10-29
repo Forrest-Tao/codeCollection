@@ -71,5 +71,5 @@ spec:
           persistentVolumeClaim:
             claimName: win-server-dhd
         - containerDisk:
-            image: harbor.123.125.194.106.nip.io:10443/kubevirt/virtio-container-disk@sha256:01822363a3a0e370bdc4184f7a6e2da0c653c9246c7c7163a3ceb14b1f26103d
+            image: harbor.123.125.194.106.nip.io:10443/kubevirt/virtio-container-volume@sha256:01822363a3a0e370bdc4184f7a6e2da0c653c9246c7c7163a3ceb14b1f26103d
           name: virtiocontainerdisk
