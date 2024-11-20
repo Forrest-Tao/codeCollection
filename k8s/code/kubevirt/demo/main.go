@@ -1,14 +1,14 @@
 package main
 
 import (
+	"codeCollection/k8s/code/kubevirt/demo/utils"
+	"codeCollection/k8s/code/kubevirt/demo/utils/vm"
 	"context"
-	"encoding/json"
-	"fmt"
-	"github.com/spf13/pflag"
-	"k8s.io/apimachinery/pkg/api/resource"
-	k8smetav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/types"
+	"github.com/gin-gonic/gin"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/util/runtime"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/oidc"
+	"k8s.io/client-go/tools/clientcmd"
 	virtcorev1 "kubevirt.io/api/core/v1"
 	"kubevirt.io/client-go/kubecli"
 	"log"
@@ -19,134 +19,117 @@ var ctx = context.Background()
 var err error
 
 func init() {
-	clientConfig := kubecli.DefaultClientConfig(&pflag.FlagSet{})
-	virtClient, err = kubecli.GetKubevirtClientFromClientConfig(clientConfig)
+	config, err := clientcmd.BuildConfigFromFlags("", utils.GetKubePath())
+	if err != nil {
+		log.Fatalf(err.Error())
+	}
+	virtClient, err = kubecli.GetKubevirtClientFromRESTConfig(config)
 	if err != nil {
 		log.Fatalf("cannot obtain KubeVirt client: %v\n", err)
 	}
 }
 
+const (
+	namespaceDefault = "kubevirt"
+	virtName         = `cirros`
+)
+
 func main() {
-	// 定义 VirtualMachine 结构体
-	//vm := &virtcorev1.VirtualMachine{
-	//	ObjectMeta: k8smetav1.ObjectMeta{
-	//		Name:      "cirros-vm",
-	//		Namespace: "kubevirt",
-	//	},
-	//	Spec: virtcorev1.VirtualMachineSpec{
-	//		Running: boolPtr(true),
-	//		Template: &virtcorev1.VirtualMachineInstanceTemplateSpec{
-	//			ObjectMeta: k8smetav1.ObjectMeta{
-	//				Labels: map[string]string{
-	//					"kubevirt.io/size":   "small",
-	//					"kubevirt.io/domain": "testvm",
-	//				},
-	//			},
-	//			Spec: virtcorev1.VirtualMachineInstanceSpec{
-	//				Domain: virtcorev1.DomainSpec{
-	//					Devices: virtcorev1.Devices{
-	//						Disks: []virtcorev1.Disk{
-	//							{
-	//								Name: "containerdisk",
-	//								DiskDevice: virtcorev1.DiskDevice{
-	//									Disk: &virtcorev1.DiskTarget{
-	//										Bus: "virtio",
-	//									},
-	//								},
-	//							},
-	//						},
-	//						Interfaces: []virtcorev1.Interface{
-	//							{
-	//								Name: "default",
-	//								InterfaceBindingMethod: virtcorev1.InterfaceBindingMethod{
-	//									Masquerade: &virtcorev1.InterfaceMasquerade{},
-	//								},
-	//							},
-	//						},
-	//					},
-	//					Resources: virtcorev1.ResourceRequirements{
-	//						Requests: k8scorev1.ResourceList{
-	//							k8scorev1.ResourceMemory: resource.MustParse("64M"),
-	//						},
-	//					},
-	//				},
-	//				Networks: []virtcorev1.Network{
-	//					{
-	//						Name: "default",
-	//						NetworkSource: virtcorev1.NetworkSource{
-	//							Pod: &virtcorev1.PodNetwork{},
-	//						},
-	//					},
-	//				},
-	//				Volumes: []virtcorev1.Volume{
-	//					{
-	//						Name: "containerdisk",
-	//						VolumeSource: virtcorev1.VolumeSource{
-	//							ContainerDisk: &virtcorev1.ContainerDiskSource{
-	//								Image: "quay.io/kubevirt/cirros-container-volume-demo",
-	//							},
-	//						},
-	//					},
-	//				},
-	//			},
-	//		},
-	//	},
-	//}
-	//
-	//// 创建虚拟机
-	//_, err = virtClient.VirtualMachine("kubevirt").Create(context.Background(), vm, k8smetav1.CreateOptions{})
-	//if err != nil {
-	//	log.Fatalf("cannot create KubeVirt VM: %v\n", err)
-	//} else {
-	//	fmt.Println("Virtual Machine created successfully.")
-	//}
-	//
-	vm, err := virtClient.VirtualMachine("kubevirt").Get(ctx, "cirros-vm", k8smetav1.GetOptions{})
-	if err != nil {
-		panic(err)
-	}
-	modifyVM(vm)
-	if err = updateVM(vm, "kubevirt"); err != nil {
-		log.Fatalf("cannot update VM: %v\n", err)
-	}
-	fmt.Println("update successful")
-	if err = restartVMi(vm, "kubevirt"); err != nil {
-		log.Fatalf("cannot restart VMi: %v\n", err)
-	}
-	fmt.Println("restart successful")
-}
+	router := gin.Default()
+	//vm
+	router.POST("/vm", func(c *gin.Context) {
+		_, err = virtClient.VirtualMachine(namespaceDefault).Create(ctx, vm.CreateDefaultVM(namespaceDefault, virtName), metav1.CreateOptions{})
+		if err != nil {
+			c.JSON(500, gin.H{"error": err.Error()})
+		} else {
+			c.JSON(200, gin.H{"message": "VM created successfully"})
+		}
+	})
+	router.DELETE("/vm", func(c *gin.Context) {
+		err = virtClient.VirtualMachine(namespaceDefault).Delete(ctx, virtName, metav1.DeleteOptions{})
+		if err != nil {
+			c.JSON(500, gin.H{"error": err.Error()})
+		} else {
+			c.JSON(200, gin.H{"message": "VM deleted successfully"})
+		}
+	})
+	router.GET("/vm", func(c *gin.Context) {
+		vm, err := virtClient.VirtualMachine(namespaceDefault).Get(ctx, virtName, metav1.GetOptions{})
+		if err != nil {
+			c.JSON(500, gin.H{"error": err.Error()})
+		} else {
+			c.JSON(200, gin.H{"vm": vm})
+		}
+	})
+	router.GET("/vm/status", func(c *gin.Context) {
+		//获取vm的详细状态
+		vm, err := virtClient.VirtualMachine(namespaceDefault).Get(ctx, virtName, metav1.GetOptions{})
+		if err != nil {
+			c.JSON(500, gin.H{"error": err.Error()})
+		}
+		c.JSON(200, gin.H{"status": vm.Status.Conditions[0]})
+	})
 
-func boolPtr(b bool) *bool {
-	return &b
-}
+	//restart
+	router.POST("/vm/restart", func(c *gin.Context) {
+		//重启vm
+		err = virtClient.VirtualMachine(namespaceDefault).Restart(ctx, virtName, &virtcorev1.RestartOptions{})
+		if err != nil {
+			c.JSON(500, gin.H{"error": err.Error()})
+		} else {
+			c.JSON(200, gin.H{"message": "VM restarted successfully"})
+		}
+	})
+	//stop
+	router.POST("/vm/stop", func(c *gin.Context) {
+		err = virtClient.VirtualMachine(namespaceDefault).Stop(ctx, virtName, &virtcorev1.StopOptions{})
+		if err != nil {
+			c.JSON(500, gin.H{"error": err.Error()})
+		} else {
+			c.JSON(200, gin.H{"message": "VM stopped successfully"})
+		}
+	})
+	//start
+	router.POST("/vm/start", func(c *gin.Context) {
+		err = virtClient.VirtualMachine(namespaceDefault).Start(ctx, virtName, &virtcorev1.StartOptions{})
+		if err != nil {
+			c.JSON(500, gin.H{"error": err.Error()})
+		} else {
+			c.JSON(200, gin.H{"message": "VM started successfully"})
+		}
+	})
 
-func updateVM(vm *virtcorev1.VirtualMachine, namespace string) error {
-	_, err = virtClient.VirtualMachine(namespace).Update(ctx, vm, k8smetav1.UpdateOptions{})
-	return err
-}
+	//snapshot
+	router.POST("/snapshot/:name", func(c *gin.Context) {
+		name := c.Param("name")
+		snap, err2 := virtClient.VirtualMachineSnapshot(namespaceDefault).Create(ctx, vm.CreateSnapshot(namespaceDefault, name), metav1.CreateOptions{})
+		if err2 != nil {
+			c.JSON(500, gin.H{"error": err2.Error()})
+		} else {
+			c.JSON(200, gin.H{"message": "Snapshot created successfully", "snapshot": snap})
+		}
+	})
 
-func getVM(namespace, name string) (*virtcorev1.VirtualMachine, error) {
-	return virtClient.VirtualMachine(namespace).Get(ctx, name, k8smetav1.GetOptions{})
-}
+	router.GET("/snapshot/:name", func(c *gin.Context) {
+		name := c.Param("name")
+		snapshot, err := virtClient.VirtualMachineSnapshot(namespaceDefault).Get(ctx, name, metav1.GetOptions{})
+		if err != nil {
+			c.JSON(500, gin.H{"error": err.Error()})
+			return
+		}
+		c.JSON(200, gin.H{"phase": snapshot.Status.Phase})
+	})
+	router.DELETE("/snapshot/:name", func(c *gin.Context) {
+		name := c.Param("name")
+		err := virtClient.VirtualMachineSnapshot(namespaceDefault).Delete(ctx, name, metav1.DeleteOptions{})
+		if err != nil {
+			c.JSON(500, gin.H{"error": err.Error()})
+		} else {
+			c.JSON(200, gin.H{"message": "Snapshot deleted successfully"})
+		}
+	})
 
-func restartVMi(vm *virtcorev1.VirtualMachine, namespace string) error {
-	return virtClient.VirtualMachine(namespace).Restart(ctx, "cirros-vm", &virtcorev1.RestartOptions{})
-}
+	//TODO： addvolume
 
-func modifyVM(vm *virtcorev1.VirtualMachine) {
-	vm.Spec.Template.Spec.Domain.Resources.Requests["cpu"] = resource.MustParse("3")      // 设置 CPU 请求为 2
-	vm.Spec.Template.Spec.Domain.Resources.Requests["memory"] = resource.MustParse("2Gi") // 设置内存请求为 2Gi
-}
-
-func patchVMLabel(namespace, vmName, labelKey, labelValue string) error {
-	patchData := map[string]interface{}{
-		"metadata": map[string]interface{}{
-			"labels": map[string]string{
-				labelKey: labelValue,
-			},
-		},
-	}
-	patchBytes, _ := json.Marshal(patchData)
-	_, err := virtClient.VirtualMachine(namespace).Patch(ctx, vmName, types.MergePatchType, patchBytes, k8smetav1.PatchOptions{})
-	return err
+	runtime.Must(router.Run(":8989"))
 }

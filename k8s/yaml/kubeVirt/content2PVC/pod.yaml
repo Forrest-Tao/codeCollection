@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: pvc-data-migration
+  namespace: default
+spec:
+  containers:
+    - name: data-migrator
+      image: busybox:latest
+      command: ["sh", "-c"]
+      volumeMounts:
+
+  restartPolicy: Never
+  volumes:
+    - name: source-pvc
+      persistentVolumeClaim:
+        claimName: ubuntu-img-ori # 源 PVC 名称

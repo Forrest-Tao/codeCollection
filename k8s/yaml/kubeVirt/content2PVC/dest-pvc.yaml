@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: destination-pvc
+  namespace: default
+spec:
+  storageClassName: openebs-lvmpv  # 替换为你的实际存储类名称
+  accessModes:
+    - ReadWriteOnce               # PVC 的访问模式
+  resources:
+    requests:
+      storage: 53Gi              # 设置目标 PVC 的存储容量，需不小于源 PVC 的大小

@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: vm-1-sysdata
+spec:
+  storageClassName: openebs-lvmpv
+  dataSource:
+    kind: VolumeSnapshot
+    name: ubuntu-img-ori-snap
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 50Gi

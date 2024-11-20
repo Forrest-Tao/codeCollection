@@ -1,0 +1,69 @@
+---
+#create one snapshot of the img original
+apiVersion: snapshot.storage.k8s.io/v1
+kind: VolumeSnapshot
+metadata:
+  name: ubuntu-img-ori-snap
+spec:
+  volumeSnapshotClassName: lvmpv-snapclass
+  source:
+    persistentVolumeClaimName: ubuntu-img-ori
+---
+#create one pvc using the snapshot
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: vm-2-sysdata
+spec:
+  storageClassName: openebs-lvmpv
+  dataSource:
+    kind: VolumeSnapshot
+    name: ubuntu-img-ori-snap
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 50Gi
+---
+#create one vm using the pvc
+apiVersion: kubevirt.io/v1
+kind: VirtualMachine
+metadata:
+  name: ubuntu-snapshot-test
+spec:
+  running: true
+  template:
+    spec:
+      domain:
+        cpu:
+          cores: 4
+        devices:
+          disks:
+            - name: sysdata
+              disk:
+                bus: virtio
+            - name: cloudinitdisk
+              disk:
+                bus: virtio
+          interfaces:
+            - name: default
+              masquerade: {}
+        resources:
+          requests:
+            memory: 8Gi
+      networks:
+        - name: default
+          pod: {}
+      volumes:
+        - name: sysdata
+          persistentVolumeClaim:
+            claimName: vm-2-sysdata
+        - name: cloudinitdisk
+          cloudInitNoCloud:
+            userData: |
+              #cloud-config
+              hostname: vm1
+              chpasswd:
+                list: |
+                  ubuntu:ubuntu
+                expire: False

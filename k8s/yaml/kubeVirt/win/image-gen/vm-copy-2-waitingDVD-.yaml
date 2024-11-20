@@ -4,7 +4,7 @@ metadata:
   name: win10-imagegen-consumer
   namespace: kubevirt
 spec:
-  dataVolumeTemplates:
+  Templates:
     - metadata:
         name: win10-consumer-iso
       spec:

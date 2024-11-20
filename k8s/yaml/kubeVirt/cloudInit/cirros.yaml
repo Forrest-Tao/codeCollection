@@ -1,0 +1,80 @@
+apiVersion: kubevirt.io/v1
+kind: VirtualMachine
+metadata:
+  namespace: kubevirt
+  name: cirros
+spec:
+  dataVolumeTemplates:
+    - metadata:
+        name: sys-dv
+      spec:
+        storage:
+          accessModes:
+            - ReadWriteOnce
+          resources:
+            requests:
+              storage: 2Gi
+          storageClassName: openebs-localpv
+        source:
+          registry:
+            url: docker://quay.io/kubevirt/cirros-container-disk-demo
+    - metadata:
+        name: data-dv-1
+      spec:
+        storage:
+          accessModes:
+            - ReadWriteOnce
+          resources:
+            requests:
+              storage: 1Gi
+          storageClassName: openebs-localpv
+        source:
+          blank: {}
+  running: true
+  template:
+    metadata:
+      labels:
+        kubevirt.io/size: small
+        kubevirt.io/domain: testvm
+    spec:
+      domain:
+        cpu:
+          sockets: 1
+          cores: 1
+          threads: 1
+        memory:
+          guest: 512Mi
+        devices:
+          disks:
+            - name: sys-dv
+              disk:
+                bus: virtio
+            - name: data-dv-1
+              disk:
+                bus: sata
+          interfaces:
+            - name: default
+              masquerade: {}
+      networks:
+        - name: default
+          pod: {}
+      volumes:
+        - name: sys-dv
+          dataVolume:
+            name: sys-dv
+        - name: data-dv-1
+          dataVolume:
+            name: data-dv-1
+        - name: cloudinitdisk
+          cloudInitNoCloud:
+            userData: |
+              #cloud-config
+              hostname: vm1
+              ssh_pwauth: True
+              disable_root: false
+              ssh_authorized_keys:
+                - ssh-rsa ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQCeUouKrUixAa/CMTqep3Ekh6IRZwkz7cs2gs9N3WcQL1uwzN/EX8+0jfEKSxaTKv37q2fU3kN3NBlIcI1bYMpyLlH1XbojIQA3mPq4Xoey377WqmMdbQFplztF3iwWCnAIphFWTMvB8+5hl6tNbKMt4uTgzYMhAywS7nLJH14IrcCNB9qjpn0FQXKBefL7r/vGeawm9vl03+gMKWXS0Oxp8rogXixtrx10J06DDaq/xkjbpPdqZEDHLhMJpdgUpbJSSgbL59QV8y070J2XJpPKdfvRCOQPleaW7IxSbVTqO+Bd/LvVD9IFSbaJYPlsLQC4VcLwaEyE+tcOPt+ZDYqwOd/QdiBTICefkRWUYEoQQSYvZoST7SyX37EprFKeKSvd0nnYoUkoM2WGMMUl0fv2BwwmXBjnp1kaK1MCGIy2ozdsgOqFNR2l+z1YigP/ynk/pGFnxyZ1Es4QxIDyYqrHbrUiPTTaLQ44s4vmXoFin+ZBzIFVYaKiDcD1jbo8s1k= root@master01
+              chpasswd:
+                list: |
+                  ubuntu:ubuntu
+                expire: False

@@ -1,27 +1,14 @@
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: vm4-data
-spec:
-  accessModes:
-    - ReadWriteOnce
-  resources:
-    requests:
-      storage: 10Gi
-  storageClassName: openebs-localpv
----
 apiVersion: kubevirt.io/v1
 kind: VirtualMachine
 metadata:
-  name: ubuntu-data-test
+  name: ubuntu-smartclone-test
   labels:
-    vmName: ubuntu-data-test
+    vmName: ubuntu-smartclone-test
     sshtest: "true"
 spec:
-  running: true
   dataVolumeTemplates:
     - metadata:
-        name: vm4-dv
+        name: smart-clone-pvc
       spec:
         storage:
           accessModes:
@@ -29,14 +16,16 @@ spec:
           resources:
             requests:
               storage: 50Gi
-          storageClassName: openebs-localpv
+          storageClassName: openebs-lvmpv
         source:
-          registry:
-            url: docker://harbor.123.125.194.106.nip.io:10443/kubevirt1/ubuntu22.04lts@sha256:5a9b884025861c3888e885b18c21f3311dd15a9ae6195fbc2e94a03dcf809d31
+          pvc:
+            name: ubuntu2204-ori
+            namespace: default
+  running: true
   template:
     metadata:
       labels:
-        vmName: ubuntu-data-test
+        vmName: ubuntu-smartclone-test
         sshtest: "true"
     spec:
       domain:
@@ -44,12 +33,9 @@ spec:
           cores: 4
         devices:
           disks:
-            - name: vm4-dv
+            - name: datavolumevolume
               disk:
                 bus: virtio
-            - name: vm4-data
-              disk:
-                bus: sata
             - name: cloudinitdisk
               disk:
                 bus: virtio
@@ -63,12 +49,9 @@ spec:
         - name: default
           pod: {}
       volumes:
-        - name: vm4-dv
-          dataVolume:
-            name: vm4-dv
-        - name: vm4-data
+        - name: datavolumevolume
           persistentVolumeClaim:
-            claimName: vm4-data
+            claimName: smart-clone-pvc
         - name: cloudinitdisk
           cloudInitNoCloud:
             userData: |

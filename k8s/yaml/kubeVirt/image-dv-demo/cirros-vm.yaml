@@ -20,6 +20,8 @@ spec:
         source:
           registry:
             url: docker://quay.io/kubevirt/cirros-container-volume-demo
+
+
   running: true
   template:
     spec:
