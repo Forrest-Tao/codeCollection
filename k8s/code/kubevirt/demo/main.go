@@ -1,8 +1,8 @@
 package main
 
 import (
+	vm2 "codeCollection/k8s/code/kubevirt/demo/pkg/vm"
 	"codeCollection/k8s/code/kubevirt/demo/utils"
-	"codeCollection/k8s/code/kubevirt/demo/utils/vm"
 	"context"
 	"github.com/gin-gonic/gin"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -38,7 +38,7 @@ func main() {
 	router := gin.Default()
 	//vm
 	router.POST("/vm", func(c *gin.Context) {
-		_, err = virtClient.VirtualMachine(namespaceDefault).Create(ctx, vm.CreateDefaultVM(namespaceDefault, virtName), metav1.CreateOptions{})
+		_, err = virtClient.VirtualMachine(namespaceDefault).Create(ctx, vm2.CreateDefaultVM(namespaceDefault, virtName), metav1.CreateOptions{})
 		if err != nil {
 			c.JSON(500, gin.H{"error": err.Error()})
 		} else {
@@ -102,7 +102,7 @@ func main() {
 	//snapshot
 	router.POST("/snapshot/:name", func(c *gin.Context) {
 		name := c.Param("name")
-		snap, err2 := virtClient.VirtualMachineSnapshot(namespaceDefault).Create(ctx, vm.CreateSnapshot(namespaceDefault, name), metav1.CreateOptions{})
+		snap, err2 := virtClient.VirtualMachineSnapshot(namespaceDefault).Create(ctx, vm2.CreateSnapshot(namespaceDefault, name), metav1.CreateOptions{})
 		if err2 != nil {
 			c.JSON(500, gin.H{"error": err2.Error()})
 		} else {

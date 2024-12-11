@@ -1,4 +1,4 @@
-package vm
+package kubevirtservice
 
 import (
 	"context"
@@ -9,23 +9,6 @@ import (
 	virtcorev1 "kubevirt.io/api/core/v1"
 	"kubevirt.io/client-go/kubecli"
 )
-
-type OSType string
-
-const (
-	Ubuntu  OSType = "Ubuntu"
-	Windows OSType = "Windows"
-)
-
-// 重启VM
-func RestartVM(ctx context.Context, virtClient kubecli.KubevirtClient, namespace, name string) error {
-	return virtClient.VirtualMachine(namespace).Restart(ctx, name, &virtcorev1.RestartOptions{})
-}
-
-// 删除VM
-func DeleteVM(ctx context.Context, virtClient kubecli.KubevirtClient, namespace, name string) error {
-	return virtClient.VirtualMachine(namespace).Delete(ctx, name, k8smetav1.DeleteOptions{})
-}
 
 func modifyVM(vm *virtcorev1.VirtualMachine) {
 	vm.Spec.Template.Spec.Domain.Resources.Requests["cpu"] = resource.MustParse("3")      // 设置 CPU 请求为 2

@@ -1,23 +1,18 @@
-package vm
+package kubevirtservice
 
 import (
+	"codeCollection/k8s/code/kubevirt/demo/utils"
 	"fmt"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	virtcorev1 "kubevirt.io/api/core/v1"
-
 	"kubevirt.io/containerized-data-importer-api/pkg/apis/core/v1beta1"
 )
 
-func StringPtr(s string) *string {
-	str := s
-	return &str
-}
-
-func BoolPtr(b bool) *bool {
-	return &b
-}
+//服务的暴露
+//windows  RDP服务暴露  -> service ingress
+//ubuntu   ssh服务暴露  -> service ingress
 
 func createDataVolume(sys, data string) []virtcorev1.DataVolumeTemplateSpec {
 	return []virtcorev1.DataVolumeTemplateSpec{
@@ -44,7 +39,7 @@ func createDataVolume(sys, data string) []virtcorev1.DataVolumeTemplateSpec {
 						SecretRef: "",
 					},
 					Registry: &v1beta1.DataVolumeSourceRegistry{
-						URL: StringPtr("docker://quay.io/kubevirt/cirros-container-disk-demo"),
+						URL: utils.To[string]("docker://quay.io/kubevirt/cirros-container-disk-demo"),
 					},
 					PVC: &v1beta1.DataVolumeSourcePVC{
 						Namespace: "",
@@ -80,7 +75,7 @@ func createDataVolume(sys, data string) []virtcorev1.DataVolumeTemplateSpec {
 							corev1.ResourceStorage: resource.MustParse("2Gi"),
 						},
 					},
-					StorageClassName: StringPtr("openebs-localpv"),
+					StorageClassName: utils.To[string]("openebs-localpv"),
 				},
 			},
 		},
@@ -101,7 +96,7 @@ func createDataVolume(sys, data string) []virtcorev1.DataVolumeTemplateSpec {
 							corev1.ResourceStorage: resource.MustParse("1Gi"),
 						},
 					},
-					StorageClassName: StringPtr("openebs-localpv"),
+					StorageClassName: utils.To[string]("openebs-localpv"),
 				},
 			},
 		},
@@ -337,7 +332,7 @@ func CreateDefaultVM(namespace string, virtName string) *virtcorev1.VirtualMachi
 			Name:      virtName,
 		},
 		Spec: virtcorev1.VirtualMachineSpec{
-			Running:             BoolPtr(true),
+			Running:             utils.To[bool](true),
 			Template:            createTemplates(namespace, virtName),
 			DataVolumeTemplates: createDataVolume(genSysDVName(namespace, virtName), genDataDVName(namespace, virtName)),
 		},

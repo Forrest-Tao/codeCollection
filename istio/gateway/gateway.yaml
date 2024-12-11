@@ -1,0 +1,17 @@
+apiVersion: networking.istio.io/v1
+kind: Gateway
+metadata:
+  name: ext-host-gwy
+spec:
+  selector:
+    app: my-gateway-controller
+  servers:
+    - port:
+        number: 443
+        name: https
+        protocol: HTTPS
+      hosts:
+        - ext-host.example.com
+      tls:
+        mode: SIMPLE
+        credentialName: ext-host-cert

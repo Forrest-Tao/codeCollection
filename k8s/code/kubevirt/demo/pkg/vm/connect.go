@@ -86,3 +86,8 @@ func ExposeVMi(virtClient kubecli.KubevirtClient, namespace string, virtName str
 	_, err := virtClient.CoreV1().Services(namespace).Create(context.Background(), svc, metav1.CreateOptions{})
 	return err
 }
+
+func ExposeRDP(virtName string) error {
+
+	return nil
+}
