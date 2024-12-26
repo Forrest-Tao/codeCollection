@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: client
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: client
+  template:
+    metadata:
+      labels:
+        app: client
+    spec:
+      containers:
+        - name: client
+          image: grpc-on-k8s-client:v4
+          ports:
+            - containerPort: 50004
+          resources:
+            requests:
+              memory: "512Mi"  # 请求 256MB 内存
+              cpu: "1"      # 请求 0.5 核 CPU
+            limits:
+              memory: "512Mi"  # 限制最大 512MB 内存
+              cpu: "1"         # 限制最大 1 核 CPU
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: client
+spec:
+  selector:
+    app: client
+  ports:
+    - protocol: TCP
+      port: 50004
+      targetPort: 50004
+  type: ClusterIP

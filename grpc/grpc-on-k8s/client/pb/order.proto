@@ -1,0 +1,44 @@
+syntax = "proto3";
+
+option go_package = "forrest/codeCollection/grpc/grpc-on-k8s/user/pb";
+
+
+// User Service
+service UserService {
+  rpc GetUserInfo(UserRequest) returns (UserInfo);
+}
+
+message UserRequest {
+  int32 user_id = 1;
+}
+
+message UserInfo {
+  int32 user_id = 1;
+  string user_name = 2;
+}
+
+// Order Service
+service OrderService {
+  rpc GetOrders(OrderRequest) returns (Orders);
+}
+
+message OrderRequest {
+  int32 user_id = 1;
+}
+
+message Orders {
+  repeated string order_list = 1;
+}
+
+// Payment Service
+service PaymentService {
+  rpc GetPayments(PaymentRequest) returns (Payments);
+}
+
+message PaymentRequest {
+  int32 user_id = 1;
+}
+
+message Payments {
+  repeated string payment_list = 1;
+}
